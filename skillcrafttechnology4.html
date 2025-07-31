@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🌟 Colorful To-Do App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #e0f7fa, #fce4ec);
+      color: #333;
+      background-attachment: fixed;
+    }
+
+    header {
+      background: url('https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=1200&q=80') no-repeat center center;
+      background-size: cover;
+      color: white;
+      text-align: center;
+      padding: 50px 20px;
+      font-size: 36px;
+      font-weight: bold;
+      text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    }
+
+    .add-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 30px;
+      justify-content: center;
+    }
+
+    .add-form input, .add-form button {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    .add-form button {
+      background-color: #0077b6;
+      color: white;
+      cursor: pointer;
+      border: none;
+      transition: background 0.3s ease;
+    }
+
+    .add-form button:hover {
+      background-color: #023e8a;
+    }
+
+    .list-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border-left: 5px solid #00b4d8;
+      background: #f1faff;
+      border-radius: 8px;
+    }
+
+    .list-section h2 {
+      color: #0077b6;
+      margin-bottom: 15px;
+    }
+
+    .task {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease;
+    }
+
+    .task:hover {
+      transform: scale(1.01);
+    }
+
+    .task.completed .text {
+      text-decoration: line-through;
+      color: #bbb;
+    }
+
+    .task input[type="text"] {
+      flex-grow: 1;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+    }
+
+    .task input[type="datetime-local"] {
+      margin-left: 10px;
+    }
+
+    .actions button {
+      margin-left: 10px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .actions button:hover {
+      color: #0077b6;
+    }
+  </style>
+</head>
+<body>
+
+  <header>📝 My Colorful To-Do List</header>
+
+  <div class="container">
+    <form class="add-form" id="addForm">
+      <input type="text" id="taskText" placeholder="What do you need to do?" required>
+      <input type="datetime-local" id="taskTime">
+      <input type="text" id="listName" placeholder="Category (e.g., Work)">
+      <button type="submit">➕ Add Task</button>
+    </form>
+
+    <div id="taskLists"></div>
+  </div>
+
+  <script>
+    const taskLists = {};
+
+    document.getElementById('addForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const text = document.getElementById('taskText').value.trim();
+      const time = document.getElementById('taskTime').value;
+      const list = document.getElementById('listName').value.trim() || 'General';
+
+      if (!text) return;
+
+      const task = { text, time, completed: false };
+      if (!taskLists[list]) taskLists[list] = [];
+      taskLists[list].push(task);
+
+      renderTasks();
+      this.reset();
+    });
+
+    function renderTasks() {
+      const container = document.getElementById('taskLists');
+      container.innerHTML = '';
+
+      Object.keys(taskLists).forEach(listName => {
+        const section = document.createElement('div');
+        section.className = 'list-section';
+        const title = document.createElement('h2');
+        title.textContent = `📁 ${listName}`;
+        section.appendChild(title);
+
+        taskLists[listName].forEach((task, index) => {
+          const taskEl = document.createElement('div');
+          taskEl.className = 'task' + (task.completed ? ' completed' : '');
+
+          const textInput = document.createElement('input');
+          textInput.type = 'text';
+          textInput.value = task.text;
+          textInput.className = 'text';
+          textInput.addEventListener('change', () => {
+            task.text = textInput.value;
+          });
+
+          const timeInput = document.createElement('input');
+          timeInput.type = 'datetime-local';
+          timeInput.value = task.time;
+          timeInput.addEventListener('change', () => {
+            task.time = timeInput.value;
+          });
+
+          const actions = document.createElement('div');
+          actions.className = 'actions';
+
+          const completeBtn = document.createElement('button');
+          completeBtn.innerHTML = task.completed ? '✔️' : '✅';
+          completeBtn.addEventListener('click', () => {
+            task.completed = !task.completed;
+            renderTasks();
+          });
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.innerHTML = '🗑️';
+          deleteBtn.addEventListener('click', () => {
+            taskLists[listName].splice(index, 1);
+            if (taskLists[listName].length === 0) delete taskLists[listName];
+            renderTasks();
+          });
+
+          actions.appendChild(completeBtn);
+          actions.appendChild(deleteBtn);
+
+          taskEl.appendChild(textInput);
+          taskEl.appendChild(timeInput);
+          taskEl.appendChild(actions);
+
+          section.appendChild(taskEl);
+        });
+
+        container.appendChild(section);
+      });
+    }
+  </script>
+</body>
+</html>
